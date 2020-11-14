@@ -27,35 +27,44 @@ import Photos
 class ViewController: UIViewController {
     
     @IBAction func showImagePicker(_ sender: UIButton) {
-        let vc = BSImagePickerViewController()
-        vc.maxNumberOfSelections = 6
-        
-        bs_presentImagePickerController(vc, animated: true,
-            select: { (asset: PHAsset) -> Void in
-                print("Selected: \(asset)")
-            }, deselect: { (asset: PHAsset) -> Void in
-                print("Deselected: \(asset)")
-            }, cancel: { (assets: [PHAsset]) -> Void in
-                print("Cancel: \(assets)")
-            }, finish: { (assets: [PHAsset]) -> Void in
-                print("Finish: \(assets)")
-            }, completion: nil)
+        let imagePicker = ImagePickerController()
+        imagePicker.settings.selection.max = 5
+        imagePicker.settings.theme.selectionStyle = .numbered
+        imagePicker.settings.fetch.assets.supportedMediaTypes = [.image, .video]
+        imagePicker.settings.selection.unselectOnReachingMax = true
+
+        let start = Date()
+        self.presentImagePicker(imagePicker, select: { (asset) in
+            print("Selected: \(asset)")
+        }, deselect: { (asset) in
+            print("Deselected: \(asset)")
+        }, cancel: { (assets) in
+            print("Canceled with selections: \(assets)")
+        }, finish: { (assets) in
+            print("Finished with selections: \(assets)")
+        }, completion: {
+            let finish = Date()
+            print(finish.timeIntervalSince(start))
+        })
     }
     
     @IBAction func showCustomImagePicker(_ sender: UIButton) {
-        let vc = BSImagePickerViewController()
-        vc.maxNumberOfSelections = 6
-        vc.takePhotoIcon = UIImage(named: "chat")
-        
-        vc.albumButton.tintColor = UIColor.green
-        vc.cancelButton.tintColor = UIColor.red
-        vc.doneButton.tintColor = UIColor.purple
-        vc.selectionCharacter = "✓"
-        vc.selectionFillColor = UIColor.gray
-        vc.selectionStrokeColor = UIColor.yellow
-        vc.selectionShadowColor = UIColor.red
-        vc.selectionTextAttributes[NSAttributedStringKey.foregroundColor] = UIColor.lightGray
-        vc.cellsPerRow = {(verticalSize: UIUserInterfaceSizeClass, horizontalSize: UIUserInterfaceSizeClass) -> Int in
+        let imagePicker = ImagePickerController()
+        imagePicker.settings.selection.max = 1
+        imagePicker.settings.selection.unselectOnReachingMax = true
+        imagePicker.settings.fetch.assets.supportedMediaTypes = [.image, .video]
+        imagePicker.albumButton.tintColor = UIColor.green
+        imagePicker.cancelButton.tintColor = UIColor.red
+        imagePicker.doneButton.tintColor = UIColor.purple
+        imagePicker.navigationBar.barTintColor = .black
+        imagePicker.settings.theme.backgroundColor = .black
+        imagePicker.settings.theme.selectionFillColor = UIColor.gray
+        imagePicker.settings.theme.selectionStrokeColor = UIColor.yellow
+        imagePicker.settings.theme.selectionShadowColor = UIColor.red
+        imagePicker.settings.theme.previewTitleAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: 16),NSAttributedString.Key.foregroundColor: UIColor.white]
+        imagePicker.settings.theme.previewSubtitleAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: 12),NSAttributedString.Key.foregroundColor: UIColor.white]
+        imagePicker.settings.theme.albumTitleAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: 18),NSAttributedString.Key.foregroundColor: UIColor.white]
+        imagePicker.settings.list.cellsPerRow = {(verticalSize: UIUserInterfaceSizeClass, horizontalSize: UIUserInterfaceSizeClass) -> Int in
             switch (verticalSize, horizontalSize) {
             case (.compact, .regular): // iPhone5-6 portrait
                 return 2
@@ -67,44 +76,40 @@ class ViewController: UIViewController {
                 return 2
             }
         }
-        
-        bs_presentImagePickerController(vc, animated: true,
-            select: { (asset: PHAsset) -> Void in
-                print("Selected: \(asset)")
-            }, deselect: { (asset: PHAsset) -> Void in
-                print("Deselected: \(asset)")
-            }, cancel: { (assets: [PHAsset]) -> Void in
-                print("Cancel: \(assets)")
-            }, finish: { (assets: [PHAsset]) -> Void in
-                print("Finish: \(assets)")
-            }, completion: nil)
+
+        self.presentImagePicker(imagePicker, select: { (asset) in
+            print("Selected: \(asset)")
+        }, deselect: { (asset) in
+            print("Deselected: \(asset)")
+        }, cancel: { (assets) in
+            print("Canceled with selections: \(assets)")
+        }, finish: { (assets) in
+            print("Finished with selections: \(assets)")
+        })
     }
-  
+    
     @IBAction func showImagePickerWithSelectedAssets(_ sender: UIButton) {
         let allAssets = PHAsset.fetchAssets(with: PHAssetMediaType.image, options: nil)
-        var evenAssetIds = [String]()
+        var evenAssets = [PHAsset]()
 
         allAssets.enumerateObjects({ (asset, idx, stop) -> Void in
             if idx % 2 == 0 {
-                evenAssetIds.append(asset.localIdentifier)
+                evenAssets.append(asset)
             }
         })
-      
-        let evenAssets = PHAsset.fetchAssets(withLocalIdentifiers: evenAssetIds, options: nil)
-      
-        let vc = BSImagePickerViewController()
-        vc.defaultSelections = evenAssets
-      
-        bs_presentImagePickerController(vc, animated: true,
-          select: { (asset: PHAsset) -> Void in
+
+        let imagePicker = ImagePickerController(selectedAssets: evenAssets)
+        imagePicker.settings.fetch.assets.supportedMediaTypes = [.image]
+
+        self.presentImagePicker(imagePicker, select: { (asset) in
             print("Selected: \(asset)")
-          }, deselect: { (asset: PHAsset) -> Void in
+        }, deselect: { (asset) in
             print("Deselected: \(asset)")
-          }, cancel: { (assets: [PHAsset]) -> Void in
-            print("Cancel: \(assets)")
-          }, finish: { (assets: [PHAsset]) -> Void in
-            print("Finish: \(assets)")
-          }, completion: nil)
+        }, cancel: { (assets) in
+            print("Canceled with selections: \(assets)")
+        }, finish: { (assets) in
+            print("Finished with selections: \(assets)")
+        })
     }
 }
 
